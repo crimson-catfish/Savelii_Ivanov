@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"entrance/lection2/operationProcessor"
+	"entrance/lection2/operproc"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 )
 
 func main() {
-	file, err := operationProcessor.GetFilePath(envVar)
+	file, err := operproc.GetFilePath(envVar)
 
 	dat, err := os.ReadFile(file)
 	if err != nil {
@@ -23,20 +23,20 @@ func main() {
 	}
 
 	var unformattedOperations []map[string]any
-	if err = json.Unmarshal(dat, &unformattedOperations); err != nil {
+	if err := json.Unmarshal(dat, &unformattedOperations); err != nil {
 		fmt.Println(err)
 	}
 
-	processedOperations, err := operationProcessor.ProcessOperations(unformattedOperations)
+	processedOperations, err := operproc.ProcessOperations(unformattedOperations)
 	if err != nil {
 		return
 	}
 
-	processedOperationsJson, err := json.Marshal(processedOperations)
+	processedOperationsJSON, err := json.Marshal(processedOperations)
 	if err != nil {
 		fmt.Println(err)
 	}
-	if err := os.WriteFile(output, processedOperationsJson, 0644); err != nil {
+	if err := os.WriteFile(output, processedOperationsJSON, 0600); err != nil {
 		fmt.Println(err)
 	}
 }

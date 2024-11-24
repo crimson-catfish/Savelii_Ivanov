@@ -1,4 +1,4 @@
-package operationProcessor
+package operproc
 
 import (
 	"flag"
