@@ -31,8 +31,7 @@ func GetFilePath(envVar string) (string, error) {
 	}
 
 	fmt.Print("Enter file to validate: ")
-	_, err := fmt.Scanln(&file)
-	if err != nil {
+	if _, err := fmt.Scanln(&file); err != nil {
 		return "", err
 	}
 
