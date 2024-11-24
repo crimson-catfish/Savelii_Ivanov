@@ -38,7 +38,7 @@ func main() {
 		return
 	}
 
-	processedOperationsJSON, err := json.Marshal(processedOperations)
+	processedOperationsJSON, err := json.MarshalIndent(processedOperations, "", "\t")
 	if err != nil {
 		fmt.Println(err)
 		return
