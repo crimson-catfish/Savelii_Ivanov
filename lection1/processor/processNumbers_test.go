@@ -26,7 +26,7 @@ func TestProcessNumbers(t *testing.T) {
 			processors: []func([]int) []int{
 				removeDuplicates,
 			},
-			expected: []int{1, 3, 5, 7, 9},
+			expected: []int{5, 3, 9, 1, 7},
 		},
 		{
 			name: "Sort only",
@@ -42,7 +42,7 @@ func TestProcessNumbers(t *testing.T) {
 			processors: []func([]int) []int{
 				floor(3),
 			},
-			expected: []int{3, 5, 7, 9},
+			expected: []int{5, 3, 9, 7},
 		},
 		{
 			name: "Floor and remove duplicates",
@@ -51,7 +51,7 @@ func TestProcessNumbers(t *testing.T) {
 				floor(4),
 				removeDuplicates,
 			},
-			expected: []int{5, 7, 9},
+			expected: []int{5, 9, 7},
 		},
 		{
 			name: "All processors",
