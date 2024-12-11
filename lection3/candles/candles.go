@@ -123,7 +123,12 @@ func ToCSV(fileName string, candles <-chan domain.Candle, wg *sync.WaitGroup) {
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(file)
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
