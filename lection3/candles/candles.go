@@ -1,7 +1,11 @@
 package candles
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
+	"strconv"
+	"sync"
 	"time"
 
 	"entrance/lection3/domain"
@@ -109,5 +113,40 @@ func newCandleFromPrice(price domain.Price, periodTS time.Time, period domain.Ca
 		Low:    price.Value,
 		Close:  price.Value,
 		TS:     periodTS,
+	}
+}
+
+func ToCSV(fileName string, candles <-chan domain.Candle, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	file, err := os.Create(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	header := []string{"Ticker", "Period", "Open", "High", "Low", "Close", "Timestamp"}
+	if err := writer.Write(header); err != nil {
+		panic(err)
+	}
+
+	for candle := range candles {
+		// fmt.Println(candle)
+		row := []string{
+			candle.Ticker,
+			string(candle.Period),
+			strconv.FormatFloat(candle.Open, 'f', 2, 64),
+			strconv.FormatFloat(candle.High, 'f', 2, 64),
+			strconv.FormatFloat(candle.Low, 'f', 2, 64),
+			strconv.FormatFloat(candle.Close, 'f', 2, 64),
+			candle.TS.Format("2006-01-02T15:04:05-07:00"),
+		}
+		// fmt.Println(row)
+		if err := writer.Write(row); err != nil {
+			panic(err)
+		}
 	}
 }
