@@ -182,3 +182,6 @@ $RECYCLE.BIN/
 /lection2/sample_input.json
 /lection2/out.json
 
+/lection3/candles_1m.csv
+/lection3/candles_2m.csv
+/lection3/candles_10m.csv
