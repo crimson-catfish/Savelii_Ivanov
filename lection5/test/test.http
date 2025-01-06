@@ -1,0 +1,55 @@
+@base_url = http://localhost:8080
+
+### Signup
+POST {{base_url}}/signup
+Content-Type: application/json
+
+{
+  "name": "testUser",
+  "password": "testPassword"
+}
+
+> {%
+    client.global.set("authToken", response.headers.valueOf("Authorization").split(" ")[1]);
+%}
+
+### Signin (extract token from response)
+POST {{base_url}}/signin
+Content-Type: application/json
+
+{
+  "name": "testUser",
+  "password": "testPassword"
+}
+
+> {%
+    client.global.set("authToken", response.headers.valueOf("Authorization").split(" ")[1]);
+%}
+
+### Send a message to a public chat (uses extracted token)
+POST {{base_url}}/publicChats/ok-chat
+Authorization: Bearer {{authToken}}
+Content-Type: text/plain
+
+Hello there
+
+### List public chats
+GET {{base_url}}/publicChats
+
+### Read a specific public chat
+GET {{base_url}}/publicChats/ok-chat
+
+### Send a message to a private chat (uses extracted token)
+POST {{base_url}}/myChats/bill
+Authorization: Bearer {{authToken}}
+Content-Type: text/plain
+
+wassap bill
+
+### List private chats (uses extracted token)
+GET {{base_url}}/myChats
+Authorization: Bearer {{authToken}}
+
+### Read a specific private chat (uses extracted token)
+GET {{base_url}}/myChats/bill
+Authorization: Bearer {{authToken}}
