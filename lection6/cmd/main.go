@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"entrance/lection6/internal/database"
-	handlers2 "entrance/lection6/internal/handlers"
+	"entrance/lection6/internal/handlers"
 	"entrance/lection6/internal/middlewares"
+	"entrance/lection6/internal/storage/mock"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -16,10 +16,10 @@ const port = ":8080"
 func main() {
 	r := chi.NewRouter()
 
-	mock := database.NewMockRepository()
+	mockRepository := mock.NewMockRepository()
 
-	authService := handlers2.NewAuthService(mock)
-	chatService := handlers2.DefaultChatService(mock)
+	authService := handlers.NewAuthService(mockRepository)
+	chatService := handlers.DefaultChatService(mockRepository)
 
 	r.Post("/signup", authService.SignUp)
 	r.Post("/signin", authService.SignIn)

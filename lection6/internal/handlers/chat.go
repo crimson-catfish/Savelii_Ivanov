@@ -10,7 +10,7 @@ import (
 
 	"entrance/lection6/internal/middlewares"
 	"entrance/lection6/internal/models"
-	"entrance/lection6/internal/reopositories"
+	"entrance/lection6/internal/storage"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -21,7 +21,7 @@ const (
 )
 
 type ChatService struct {
-	repo reopositories.Repository
+	repo storage.Repository
 	Configs
 }
 
@@ -30,7 +30,7 @@ type Configs struct {
 	maxPrivateMessageLength int
 }
 
-func DefaultChatService(repo reopositories.Repository) *ChatService {
+func DefaultChatService(repo storage.Repository) *ChatService {
 	return &ChatService{
 		repo: repo,
 		Configs: Configs{
@@ -40,7 +40,7 @@ func DefaultChatService(repo reopositories.Repository) *ChatService {
 	}
 }
 
-func NewChatService(repo reopositories.Repository, configs Configs) *ChatService {
+func NewChatService(repo storage.Repository, configs Configs) *ChatService {
 	return &ChatService{repo: repo, Configs: configs}
 }
 

@@ -6,15 +6,15 @@ import (
 	"net/http"
 
 	"entrance/lection6/internal/models"
-	"entrance/lection6/internal/reopositories"
+	"entrance/lection6/internal/storage"
 	"entrance/lection6/pkg/auth"
 )
 
 type AuthService struct {
-	repo reopositories.Repository
+	repo storage.Repository
 }
 
-func NewAuthService(repo reopositories.Repository) *AuthService {
+func NewAuthService(repo storage.Repository) *AuthService {
 	return &AuthService{repo: repo}
 }
 

@@ -1,4 +1,4 @@
-package reopositories
+package storage
 
 import (
 	"entrance/lection6/internal/models"
