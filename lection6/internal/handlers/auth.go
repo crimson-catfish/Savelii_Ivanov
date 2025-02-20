@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"entrance/lection6/auth"
-	"entrance/lection6/models"
-	"entrance/lection6/reopositories"
+	"entrance/lection6/internal/models"
+	"entrance/lection6/internal/reopositories"
+	"entrance/lection6/pkg/auth"
 )
 
 type AuthService struct {

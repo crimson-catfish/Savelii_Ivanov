@@ -8,9 +8,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"entrance/lection6/middlewares"
-	"entrance/lection6/models"
-	"entrance/lection6/reopositories"
+	"entrance/lection6/internal/middlewares"
+	"entrance/lection6/internal/models"
+	"entrance/lection6/internal/reopositories"
 
 	"github.com/go-chi/chi/v5"
 )

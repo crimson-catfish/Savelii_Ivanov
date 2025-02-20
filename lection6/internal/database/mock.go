@@ -3,7 +3,7 @@ package database
 import (
 	"time"
 
-	"entrance/lection6/models"
+	"entrance/lection6/internal/models"
 )
 
 // mock database populated with some sample data

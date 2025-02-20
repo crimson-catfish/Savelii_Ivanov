@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"entrance/lection6/database"
-	"entrance/lection6/handlers"
-	"entrance/lection6/middlewares"
+	"entrance/lection6/internal/database"
+	handlers2 "entrance/lection6/internal/handlers"
+	"entrance/lection6/internal/middlewares"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -18,8 +18,8 @@ func main() {
 
 	mock := database.NewMockRepository()
 
-	authService := handlers.NewAuthService(mock)
-	chatService := handlers.DefaultChatService(mock)
+	authService := handlers2.NewAuthService(mock)
+	chatService := handlers2.DefaultChatService(mock)
 
 	r.Post("/signup", authService.SignUp)
 	r.Post("/signin", authService.SignIn)

@@ -1,6 +1,8 @@
 package reopositories
 
-import "entrance/lection6/models"
+import (
+	"entrance/lection6/internal/models"
+)
 
 type Repository interface {
 	UserExists(name string) bool

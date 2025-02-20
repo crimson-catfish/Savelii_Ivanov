@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"entrance/lection6/auth"
+	"entrance/lection6/pkg/auth"
 
 	"github.com/golang-jwt/jwt/v5"
 )
