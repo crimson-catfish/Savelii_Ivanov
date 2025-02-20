@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"entrance/lection5/handlers"
-	"entrance/lection5/middlewares"
+	"entrance/lection6/database"
+	"entrance/lection6/handlers"
+	"entrance/lection6/middlewares"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -15,21 +16,26 @@ const port = ":8080"
 func main() {
 	r := chi.NewRouter()
 
-	r.Post("/signup", handlers.SignUp)
-	r.Post("/signin", handlers.SignIn)
+	mock := database.NewMockRepository()
 
-	r.Get("/publicChats", handlers.ListPublicChats)
-	r.Get("/publicChats/{chatName}", handlers.ReadPublicChat)
+	authService := handlers.NewAuthService(mock)
+	chatService := handlers.DefaultChatService(mock)
+
+	r.Post("/signup", authService.SignUp)
+	r.Post("/signin", authService.SignIn)
+
+	r.Get("/publicChats", chatService.ListPublic)
+	r.Get("/publicChats/{chatName}", chatService.ReadPublic)
 
 	r.Group(
 		func(r chi.Router) {
 			r.Use(middlewares.Auth)
 
-			r.Post("/publicChats/{chatName}", handlers.SendToPublicChat)
+			r.Post("/publicChats/{chatName}", chatService.SendToPublic)
 
-			r.Get("/myChats", handlers.ListPrivateChats)
-			r.Get("/myChats/{chatName}", handlers.ReadPrivateChat)
-			r.Post("/myChats/{chatName}", handlers.SendPrivate)
+			r.Get("/myChats", chatService.ListPrivate)
+			r.Get("/myChats/{chatName}", chatService.ReadPrivate)
+			r.Post("/myChats/{chatName}", chatService.SendPrivate)
 		},
 	)
 

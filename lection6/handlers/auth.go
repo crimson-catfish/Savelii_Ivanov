@@ -5,12 +5,20 @@ import (
 	"fmt"
 	"net/http"
 
-	"entrance/lection5/auth"
-	"entrance/lection5/database"
-	"entrance/lection5/models"
+	"entrance/lection6/auth"
+	"entrance/lection6/models"
+	"entrance/lection6/reopositories"
 )
 
-func SignIn(w http.ResponseWriter, r *http.Request) {
+type AuthService struct {
+	repo reopositories.Repository
+}
+
+func NewAuthService(repo reopositories.Repository) *AuthService {
+	return &AuthService{repo: repo}
+}
+
+func (s *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 	var credentials models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
@@ -26,12 +34,12 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !database.UserExists(credentials.Name) {
+	if !s.repo.UserExists(credentials.Name) {
 		http.Error(w, fmt.Sprintf("User \"%s\" not found", credentials.Name), http.StatusConflict)
 		return
 	}
 
-	password := database.GetPassword(credentials.Name)
+	password := s.repo.GetPassword(credentials.Name)
 	if password != credentials.Password {
 		http.Error(w, "Invalid password", http.StatusUnauthorized)
 		return
@@ -47,7 +55,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func SignUp(w http.ResponseWriter, r *http.Request) {
+func (s *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
 	var credentials models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
@@ -63,11 +71,11 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if database.UserExists(credentials.Name) {
+	if s.repo.UserExists(credentials.Name) {
 		http.Error(w, fmt.Sprintf("Name \"%s\" is already taken", credentials.Name), http.StatusConflict)
 		return
 	}
-	database.AddUser(credentials)
+	s.repo.AddUser(credentials)
 
 	token, err := auth.CreateJWTToken(credentials.Name)
 	if err != nil {

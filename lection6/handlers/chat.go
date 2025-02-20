@@ -8,21 +8,45 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"entrance/lection5/database"
-	"entrance/lection5/middlewares"
-	"entrance/lection5/models"
+	"entrance/lection6/middlewares"
+	"entrance/lection6/models"
+	"entrance/lection6/reopositories"
 
 	"github.com/go-chi/chi/v5"
 )
 
 const (
-	maxPublicMessageLength  = 1023
-	maxPrivateMessageLength = 4095
+	defaultMaxPublicMessageLength  = 1023
+	defaultMaxPrivateMessageLength = 4095
 )
 
-func ReadPublicChat(w http.ResponseWriter, r *http.Request) {
+type ChatService struct {
+	repo reopositories.Repository
+	Configs
+}
+
+type Configs struct {
+	maxPublicMessageLength  int
+	maxPrivateMessageLength int
+}
+
+func DefaultChatService(repo reopositories.Repository) *ChatService {
+	return &ChatService{
+		repo: repo,
+		Configs: Configs{
+			maxPublicMessageLength:  defaultMaxPublicMessageLength,
+			maxPrivateMessageLength: defaultMaxPrivateMessageLength,
+		},
+	}
+}
+
+func NewChatService(repo reopositories.Repository, configs Configs) *ChatService {
+	return &ChatService{repo: repo, Configs: configs}
+}
+
+func (s *ChatService) ReadPublic(w http.ResponseWriter, r *http.Request) {
 	var chatName = chi.URLParam(r, "chatName")
-	messages := database.GetPublicMessages(chatName)
+	messages := s.repo.GetPublicMessages(chatName)
 	if len(messages) == 0 {
 		http.Error(w, fmt.Sprintf("Public chat %s not found", chatName), http.StatusNotFound)
 	}
@@ -37,10 +61,10 @@ func ReadPublicChat(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(bytes)
 }
 
-func ReadPrivateChat(w http.ResponseWriter, r *http.Request) {
+func (s *ChatService) ReadPrivate(w http.ResponseWriter, r *http.Request) {
 	chatName := chi.URLParam(r, "chatName")
 	userName := r.Context().Value(middlewares.UserName).(string)
-	messages := database.GetPrivateMessages(userName, chatName)
+	messages := s.repo.GetPrivateMessages(userName, chatName)
 	bytes, err := json.Marshal(messages)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -51,12 +75,12 @@ func ReadPrivateChat(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(bytes)
 }
 
-func SendToPublicChat(w http.ResponseWriter, r *http.Request) {
-	sendMessage(w, r, maxPublicMessageLength, database.AddPublicMessage)
+func (s *ChatService) SendToPublic(w http.ResponseWriter, r *http.Request) {
+	s.sendMessage(w, r, s.maxPublicMessageLength, s.repo.AddPublicMessage)
 }
 
-func ListPublicChats(w http.ResponseWriter, _ *http.Request) {
-	chats := database.GetAllPublicChats()
+func (s *ChatService) ListPublic(w http.ResponseWriter, _ *http.Request) {
+	chats := s.repo.GetAllPublicChats()
 	bytes, err := json.Marshal(chats)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -67,13 +91,13 @@ func ListPublicChats(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write(bytes)
 }
 
-func SendPrivate(w http.ResponseWriter, r *http.Request) {
-	sendMessage(w, r, maxPrivateMessageLength, database.AddPrivateMessage)
+func (s *ChatService) SendPrivate(w http.ResponseWriter, r *http.Request) {
+	s.sendMessage(w, r, s.maxPrivateMessageLength, s.repo.AddPrivateMessage)
 }
 
-func ListPrivateChats(w http.ResponseWriter, r *http.Request) {
+func (s *ChatService) ListPrivate(w http.ResponseWriter, r *http.Request) {
 	userName := r.Context().Value(middlewares.UserName).(string)
-	chats := database.GetAllPrivateChats(userName)
+	chats := s.repo.GetAllPrivateChats(userName)
 	bytes, err := json.Marshal(chats)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -84,7 +108,7 @@ func ListPrivateChats(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(bytes)
 }
 
-func sendMessage(
+func (s *ChatService) sendMessage(
 	w http.ResponseWriter, r *http.Request, maxMessageLength int, addMessageFunc func(string, models.Message)) {
 	limitedReader := io.LimitReader(r.Body, int64(maxMessageLength)+1)
 	body, err := io.ReadAll(limitedReader)

@@ -1,10 +1,9 @@
 package database
 
 import (
-	"fmt"
 	"time"
 
-	"entrance/lection5/models"
+	"entrance/lection6/models"
 )
 
 // mock database populated with some sample data
@@ -39,20 +38,26 @@ var (
 	}
 )
 
-func UserExists(name string) bool {
+type MockRepository struct{}
+
+func NewMockRepository() *MockRepository {
+	return &MockRepository{}
+}
+
+func (repo *MockRepository) UserExists(name string) bool {
 	_, ok := userPasswords[name]
 	return ok
 }
 
-func AddUser(credentials models.Credentials) {
+func (repo *MockRepository) AddUser(credentials models.Credentials) {
 	userPasswords[credentials.Name] = credentials.Password
 }
 
-func GetPassword(name string) string {
+func (repo *MockRepository) GetPassword(name string) string {
 	return userPasswords[name]
 }
 
-func AddPublicMessage(chat string, msg models.Message) {
+func (repo *MockRepository) AddPublicMessage(chat string, msg models.Message) {
 	if publicChatsMap[chat] == nil {
 		publicChatsMap[chat] = make([]models.Message, 0)
 		publicChatsSlice = append(publicChatsSlice, chat)
@@ -61,15 +66,15 @@ func AddPublicMessage(chat string, msg models.Message) {
 	publicChatsMap[chat] = append(publicChatsMap[chat], msg)
 }
 
-func GetPublicMessages(chat string) []models.Message {
+func (repo *MockRepository) GetPublicMessages(chat string) []models.Message {
 	return publicChatsMap[chat]
 }
 
-func GetAllPublicChats() []string {
+func (repo *MockRepository) GetAllPublicChats() []string {
 	return publicChatsSlice
 }
 
-func AddPrivateMessage(receiver string, msg models.Message) {
+func (repo *MockRepository) AddPrivateMessage(receiver string, msg models.Message) {
 	if privateChatsMap[receiver] == nil {
 		privateChatsMap[receiver] = make(map[string]*models.PrivateChat)
 	}
@@ -91,12 +96,9 @@ func AddPrivateMessage(receiver string, msg models.Message) {
 	}
 
 	privateChatsMap[receiver][msg.Sender].Messages = append(privateChatsMap[receiver][msg.Sender].Messages, msg)
-
-	fmt.Println(privateChatsSlice)
-	fmt.Println(privateChatsMap)
 }
 
-func GetAllPrivateChats(user string) []string {
+func (repo *MockRepository) GetAllPrivateChats(user string) []string {
 	chats := make([]string, 0)
 	for chat := range privateChatsMap[user] {
 		chats = append(chats, chat)
@@ -104,7 +106,7 @@ func GetAllPrivateChats(user string) []string {
 	return chats
 }
 
-func GetPrivateMessages(userName, chatName string) []models.Message {
+func (repo *MockRepository) GetPrivateMessages(userName, chatName string) []models.Message {
 	if privateChatsMap[userName] == nil || privateChatsMap[userName][chatName] == nil {
 		return []models.Message{}
 	}
