@@ -1,9 +1,10 @@
-package handlers
+package chat
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 	"unicode/utf8"
@@ -46,14 +47,21 @@ func NewChatService(repo storage.Repository, configs Configs) *ChatService {
 
 func (s *ChatService) ReadPublic(w http.ResponseWriter, r *http.Request) {
 	var chatName = chi.URLParam(r, "chatName")
-	messages := s.repo.GetPublicMessages(chatName)
+	messages, err := s.repo.GetPublicMessages(chatName)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 	if len(messages) == 0 {
 		http.Error(w, fmt.Sprintf("Public chat %s not found", chatName), http.StatusNotFound)
+		return
 	}
 
 	bytes, err := json.Marshal(messages)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -64,10 +72,16 @@ func (s *ChatService) ReadPublic(w http.ResponseWriter, r *http.Request) {
 func (s *ChatService) ReadPrivate(w http.ResponseWriter, r *http.Request) {
 	chatName := chi.URLParam(r, "chatName")
 	userName := r.Context().Value(middlewares.UserName).(string)
-	messages := s.repo.GetPrivateMessages(userName, chatName)
+	messages, err := s.repo.GetPrivateMessages(userName, chatName)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 	bytes, err := json.Marshal(messages)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -80,10 +94,16 @@ func (s *ChatService) SendToPublic(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *ChatService) ListPublic(w http.ResponseWriter, _ *http.Request) {
-	chats := s.repo.GetAllPublicChats()
+	chats, err := s.repo.GetAllPublicChats()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 	bytes, err := json.Marshal(chats)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -97,10 +117,16 @@ func (s *ChatService) SendPrivate(w http.ResponseWriter, r *http.Request) {
 
 func (s *ChatService) ListPrivate(w http.ResponseWriter, r *http.Request) {
 	userName := r.Context().Value(middlewares.UserName).(string)
-	chats := s.repo.GetAllPrivateChats(userName)
+	chats, err := s.repo.GetAllPrivateChats(userName)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 	bytes, err := json.Marshal(chats)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -109,11 +135,11 @@ func (s *ChatService) ListPrivate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *ChatService) sendMessage(
-	w http.ResponseWriter, r *http.Request, maxMessageLength int, addMessageFunc func(string, models.Message)) {
+	w http.ResponseWriter, r *http.Request, maxMessageLength int, addMessageFunc func(string, models.Message) error) {
 	limitedReader := io.LimitReader(r.Body, int64(maxMessageLength)+1)
 	body, err := io.ReadAll(limitedReader)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -131,5 +157,8 @@ func (s *ChatService) sendMessage(
 		Content: string(body),
 	}
 
-	addMessageFunc(chi.URLParam(r, "chatName"), msg)
+	if err := addMessageFunc(chi.URLParam(r, "chatName"), msg); err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+	}
 }

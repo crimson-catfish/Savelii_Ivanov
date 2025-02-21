@@ -1,8 +1,9 @@
-package handlers
+package auth
 
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"entrance/lection6/internal/models"
@@ -22,6 +23,7 @@ func (s *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 	var credentials models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -34,12 +36,23 @@ func (s *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !s.repo.UserExists(credentials.Name) {
+	exists, err := s.repo.UserExists(credentials.Name)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
 		http.Error(w, fmt.Sprintf("User \"%s\" not found", credentials.Name), http.StatusConflict)
 		return
 	}
 
-	password := s.repo.GetPassword(credentials.Name)
+	password, err := s.repo.GetPassword(credentials.Name)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 	if password != credentials.Password {
 		http.Error(w, "Invalid password", http.StatusUnauthorized)
 		return
@@ -47,6 +60,7 @@ func (s *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	token, err := auth.CreateJWTToken(credentials.Name)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -59,6 +73,7 @@ func (s *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
 	var credentials models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -71,14 +86,26 @@ func (s *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if s.repo.UserExists(credentials.Name) {
+	exists, err := s.repo.UserExists(credentials.Name)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+	if exists {
 		http.Error(w, fmt.Sprintf("Name \"%s\" is already taken", credentials.Name), http.StatusConflict)
 		return
 	}
-	s.repo.AddUser(credentials)
+
+	if err := s.repo.AddUser(credentials); err != nil {
+		log.Println(err)
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
 
 	token, err := auth.CreateJWTToken(credentials.Name)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

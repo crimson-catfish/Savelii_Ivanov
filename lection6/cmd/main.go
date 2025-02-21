@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"entrance/lection6/internal/handlers"
+	"entrance/lection6/internal/handlers/auth"
+	"entrance/lection6/internal/handlers/chat"
 	"entrance/lection6/internal/middlewares"
 	"entrance/lection6/internal/storage/mock"
 
@@ -18,8 +19,8 @@ func main() {
 
 	mockRepository := mock.NewMockRepository()
 
-	authService := handlers.NewAuthService(mockRepository)
-	chatService := handlers.DefaultChatService(mockRepository)
+	authService := auth.NewAuthService(mockRepository)
+	chatService := chat.DefaultChatService(mockRepository)
 
 	r.Post("/signup", authService.SignUp)
 	r.Post("/signin", authService.SignIn)
