@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:12
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: chat
+    volumes:
+      - ./../internal/storage/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./../internal/storage/postgres/sample_data.sql:/docker-entrypoint-initdb.d/sample_data.sql
+    ports:
+      - "5442:5432"
