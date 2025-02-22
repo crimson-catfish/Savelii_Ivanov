@@ -39,18 +39,18 @@ var (
 	}
 )
 
-type MockRepository struct{}
+type Repository struct{}
 
-func NewMockRepository() *MockRepository {
-	return &MockRepository{}
+func NewMockRepository() *Repository {
+	return &Repository{}
 }
 
-func (repo *MockRepository) UserExists(name string) (bool, error) {
+func (repo *Repository) UserExists(name string) (bool, error) {
 	_, ok := userPasswords[name]
 	return ok, nil
 }
 
-func (repo *MockRepository) AddUser(credentials models.Credentials) error {
+func (repo *Repository) AddUser(credentials models.Credentials) error {
 	_, exists := userPasswords[credentials.Name]
 	if exists {
 		return errors.New("user already exists")
@@ -59,7 +59,7 @@ func (repo *MockRepository) AddUser(credentials models.Credentials) error {
 	return nil
 }
 
-func (repo *MockRepository) GetPassword(name string) (string, error) {
+func (repo *Repository) GetPassword(name string) (string, error) {
 	password, exists := userPasswords[name]
 	if !exists {
 		return "", errors.New("user not found")
@@ -67,7 +67,7 @@ func (repo *MockRepository) GetPassword(name string) (string, error) {
 	return password, nil
 }
 
-func (repo *MockRepository) AddPublicMessage(chat string, msg models.Message) error {
+func (repo *Repository) AddPublicMessage(chat string, msg models.Message) error {
 	if publicChatsMap[chat] == nil {
 		publicChatsMap[chat] = make([]models.Message, 0)
 		publicChatsSlice = append(publicChatsSlice, chat)
@@ -77,7 +77,7 @@ func (repo *MockRepository) AddPublicMessage(chat string, msg models.Message) er
 	return nil
 }
 
-func (repo *MockRepository) GetPublicMessages(chat string) ([]models.Message, error) {
+func (repo *Repository) GetPublicMessages(chat string) ([]models.Message, error) {
 	messages, exists := publicChatsMap[chat]
 	if !exists {
 		return nil, errors.New("public chat not found")
@@ -85,11 +85,11 @@ func (repo *MockRepository) GetPublicMessages(chat string) ([]models.Message, er
 	return messages, nil
 }
 
-func (repo *MockRepository) GetAllPublicChats() ([]string, error) {
+func (repo *Repository) GetAllPublicChats() ([]string, error) {
 	return publicChatsSlice, nil
 }
 
-func (repo *MockRepository) AddPrivateMessage(receiver string, msg models.Message) error {
+func (repo *Repository) AddPrivateMessage(receiver string, msg models.Message) error {
 	// Check if chat exists for both users
 	if privateChatsMap[receiver] == nil {
 		privateChatsMap[receiver] = make(map[string]*models.PrivateChat)
@@ -117,7 +117,7 @@ func (repo *MockRepository) AddPrivateMessage(receiver string, msg models.Messag
 	return nil
 }
 
-func (repo *MockRepository) GetAllPrivateChats(user string) ([]string, error) {
+func (repo *Repository) GetAllPrivateChats(user string) ([]string, error) {
 	chats := make([]string, 0)
 	for chat := range privateChatsMap[user] {
 		chats = append(chats, chat)
@@ -125,7 +125,7 @@ func (repo *MockRepository) GetAllPrivateChats(user string) ([]string, error) {
 	return chats, nil
 }
 
-func (repo *MockRepository) GetPrivateMessages(userName, chatName string) ([]models.Message, error) {
+func (repo *Repository) GetPrivateMessages(userName, chatName string) ([]models.Message, error) {
 	// Check if private chat exists for the user and chat
 	if privateChatsMap[userName] == nil || privateChatsMap[userName][chatName] == nil {
 		return nil, errors.New("private chat not found")
@@ -133,4 +133,4 @@ func (repo *MockRepository) GetPrivateMessages(userName, chatName string) ([]mod
 	return privateChatsMap[userName][chatName].Messages, nil
 }
 
-func (repo *MockRepository) Close() error { return nil }
+func (repo *Repository) Close() error { return nil }

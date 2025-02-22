@@ -21,7 +21,7 @@ const (
 	defaultMaxPrivateMessageLength = 4095
 )
 
-type ChatService struct {
+type Service struct {
 	repo storage.Repository
 	Configs
 }
@@ -31,8 +31,8 @@ type Configs struct {
 	maxPrivateMessageLength int
 }
 
-func DefaultChatService(repo storage.Repository) *ChatService {
-	return &ChatService{
+func DefaultChatService(repo storage.Repository) *Service {
+	return &Service{
 		repo: repo,
 		Configs: Configs{
 			maxPublicMessageLength:  defaultMaxPublicMessageLength,
@@ -41,11 +41,11 @@ func DefaultChatService(repo storage.Repository) *ChatService {
 	}
 }
 
-func NewChatService(repo storage.Repository, configs Configs) *ChatService {
-	return &ChatService{repo: repo, Configs: configs}
+func NewChatService(repo storage.Repository, configs Configs) *Service {
+	return &Service{repo: repo, Configs: configs}
 }
 
-func (s *ChatService) ReadPublic(w http.ResponseWriter, r *http.Request) {
+func (s *Service) ReadPublic(w http.ResponseWriter, r *http.Request) {
 	var chatName = chi.URLParam(r, "chatName")
 	messages, err := s.repo.GetPublicMessages(chatName)
 	if err != nil {
@@ -69,7 +69,7 @@ func (s *ChatService) ReadPublic(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(bytes)
 }
 
-func (s *ChatService) ReadPrivate(w http.ResponseWriter, r *http.Request) {
+func (s *Service) ReadPrivate(w http.ResponseWriter, r *http.Request) {
 	chatName := chi.URLParam(r, "chatName")
 	userName := r.Context().Value(middlewares.UserName).(string)
 	messages, err := s.repo.GetPrivateMessages(userName, chatName)
@@ -89,11 +89,11 @@ func (s *ChatService) ReadPrivate(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(bytes)
 }
 
-func (s *ChatService) SendToPublic(w http.ResponseWriter, r *http.Request) {
+func (s *Service) SendToPublic(w http.ResponseWriter, r *http.Request) {
 	s.sendMessage(w, r, s.maxPublicMessageLength, s.repo.AddPublicMessage)
 }
 
-func (s *ChatService) ListPublic(w http.ResponseWriter, _ *http.Request) {
+func (s *Service) ListPublic(w http.ResponseWriter, _ *http.Request) {
 	chats, err := s.repo.GetAllPublicChats()
 	if err != nil {
 		log.Println(err)
@@ -111,11 +111,11 @@ func (s *ChatService) ListPublic(w http.ResponseWriter, _ *http.Request) {
 	_, _ = w.Write(bytes)
 }
 
-func (s *ChatService) SendPrivate(w http.ResponseWriter, r *http.Request) {
+func (s *Service) SendPrivate(w http.ResponseWriter, r *http.Request) {
 	s.sendMessage(w, r, s.maxPrivateMessageLength, s.repo.AddPrivateMessage)
 }
 
-func (s *ChatService) ListPrivate(w http.ResponseWriter, r *http.Request) {
+func (s *Service) ListPrivate(w http.ResponseWriter, r *http.Request) {
 	userName := r.Context().Value(middlewares.UserName).(string)
 	chats, err := s.repo.GetAllPrivateChats(userName)
 	if err != nil {
@@ -134,7 +134,7 @@ func (s *ChatService) ListPrivate(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(bytes)
 }
 
-func (s *ChatService) sendMessage(
+func (s *Service) sendMessage(
 	w http.ResponseWriter, r *http.Request, maxMessageLength int, addMessageFunc func(string, models.Message) error) {
 	limitedReader := io.LimitReader(r.Body, int64(maxMessageLength)+1)
 	body, err := io.ReadAll(limitedReader)

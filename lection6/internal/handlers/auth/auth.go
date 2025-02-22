@@ -11,15 +11,15 @@ import (
 	"entrance/lection6/pkg/auth"
 )
 
-type AuthService struct {
+type Service struct {
 	repo storage.Repository
 }
 
-func NewAuthService(repo storage.Repository) *AuthService {
-	return &AuthService{repo: repo}
+func NewAuthService(repo storage.Repository) *Service {
+	return &Service{repo: repo}
 }
 
-func (s *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
+func (s *Service) SignIn(w http.ResponseWriter, r *http.Request) {
 	var credentials models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
@@ -69,7 +69,7 @@ func (s *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
+func (s *Service) SignUp(w http.ResponseWriter, r *http.Request) {
 	var credentials models.Credentials
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
