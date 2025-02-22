@@ -1,13 +1,14 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"entrance/lection6/internal/handlers/auth"
 	"entrance/lection6/internal/handlers/chat"
 	"entrance/lection6/internal/middlewares"
-	"entrance/lection6/internal/storage/mock"
+	"entrance/lection6/internal/storage/postgres"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -17,10 +18,15 @@ const port = ":8080"
 func main() {
 	r := chi.NewRouter()
 
-	mockRepository := mock.NewMockRepository()
+	repo := postgres.NewPostgresRepository()
+	defer func() {
+		if err := repo.Close(); err != nil {
+			log.Printf("Error closing connection: %v", err)
+		}
+	}()
 
-	authService := auth.NewAuthService(mockRepository)
-	chatService := chat.DefaultChatService(mockRepository)
+	authService := auth.NewAuthService(repo)
+	chatService := chat.DefaultChatService(repo)
 
 	r.Post("/signup", authService.SignUp)
 	r.Post("/signin", authService.SignIn)
